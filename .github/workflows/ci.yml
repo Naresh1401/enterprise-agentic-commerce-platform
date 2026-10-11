@@ -2,17 +2,27 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
+  workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# Shared checks from https://github.com/Naresh1401/github-cicd-workflows
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - run: python -m pip install --upgrade pip
-      - run: pip install -e ".[dev]"
-      - run: pytest
+  python:
+    name: Python
+    uses: Naresh1401/github-cicd-workflows/.github/workflows/python-ci.yml@v1
 
+  container:
+    name: Docker image
+    uses: Naresh1401/github-cicd-workflows/.github/workflows/container.yml@v1
+
+  repo-lint:
+    name: Repository lint
+    uses: Naresh1401/github-cicd-workflows/.github/workflows/repo-lint.yml@v1
